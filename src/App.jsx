@@ -4,20 +4,36 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { Signin, Login } from './Signin';
+import { Sendotp, Verifyotp } from './Sendotp';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 export default function App() {
-  
-
   return (
     <div className="App">
-     <Shorturl/>
-      
+<Routes>
+        <Route path="/" element={<Signin />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forget-password" element={<Sendotp />} />
+        <Route path="/verify" element={<Verifyotp />} />
+        <Route path="/url-Shortening" element={<ProtectedRoute> <Shorturl/></ProtectedRoute>} />
+      </Routes>
     </div>
   )
 }
 
 
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token');
+  // const token=false;
+  return (
+    token ? <section>{children}</section> : <Navigate replace to="/" />
+    //  token? <section>{children}</section>:<h1>unautharaied</h1>
+  )
+}
+
 function Shorturl(){
+  const navigate = useNavigate()
   const [url, setUrl] = useState('');
   const [shortUrl, setShortUrl] = useState('');
   const [message, setMessage] = useState('');
@@ -26,7 +42,7 @@ function Shorturl(){
     e.preventDefault();
 
     try {
-      const response = await fetch('https://url-shortner-backend-wine.vercel.app/api/shorten', {
+      const response = await fetch('https://url-shortner-task-backend.vercel.app/api/shorten', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,9 +61,17 @@ function Shorturl(){
     setUrl("")
     setShortUrl("")
   }
+  const handleClick = () => {
+    localStorage.removeItem('token');
+    setTimeout(() => {
+      navigate("/login")
+    }, 1500);
+    console.log("logout")
+  }
 
   return(
     <div className='parrent'>
+      <Button onClick={handleClick} variant="contained">LOGOUT</Button>
       <Card sx={{ maxWidth: 500 }}>
       <CardContent>
       <div className='child1'>
@@ -58,7 +82,7 @@ function Shorturl(){
       <div className='child1'>
       <div>
         <label>
-        Original URL:
+       <b> Original URL:</b>
         </label>
         </div>
         <div> <TextField type='url'size="small" value={url} onChange={(e) => setUrl(e.target.value)} />
@@ -69,14 +93,20 @@ function Shorturl(){
     {message && <p>{message}</p>}
     {shortUrl && (
       <div>
-        <p>Shortened URL:</p>
+        <p><b>Shortened URL:</b></p>
         <a href={shortUrl} target="_blank" rel="noopener noreferrer">
           {shortUrl}
         </a>
       </div>
     )}
+    
     </CardContent>
     </Card>
   </div>
   )
 }
+
+
+
+
+
